@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fala Aí — Treinador Social</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E0E0F;
+    --surface: #181819;
+    --surface2: #222224;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #C8F04E;
+    --accent2: #A8D93E;
+    --text: #F0EEE8;
+    --text2: #999891;
+    --text3: #555450;
+    --good: #4EF09A;
+    --ok: #F0C84E;
+    --bad: #F06B4E;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  .noise {
+    position: fixed; inset: 0; opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  .glow-orb {
+    position: fixed; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,240,78,0.06) 0%, transparent 70%);
+    top: -200px; right: -100px; pointer-events: none; z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .app-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 48px; animation: fadeUp 0.6s ease both; }
+
+  .logo-block h1 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 300; letter-spacing: -0.5px; color: var(--text); line-height: 1; }
+  .logo-block h1 span { color: var(--accent); font-style: italic; }
+  .logo-block p { font-size: 13px; color: var(--text2); margin-top: 6px; font-weight: 300; }
+
+  .stats-chips { display: flex; gap: 8px; align-items: center; }
+  .chip { background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 5px; }
+  .chip strong { color: var(--text); font-weight: 500; }
+
+  .progress-section { margin-bottom: 36px; animation: fadeUp 0.6s 0.1s ease both; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+  .level-tag { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 12px; border-radius: 99px; border: 1px solid; }
+  .level-tag.l1 { color: #4EF09A; border-color: rgba(78,240,154,0.25); background: rgba(78,240,154,0.06); }
+  .level-tag.l2 { color: #4EC8F0; border-color: rgba(78,200,240,0.25); background: rgba(78,200,240,0.06); }
+  .level-tag.l3 { color: #C8F04E; border-color: rgba(200,240,78,0.25); background: rgba(200,240,78,0.06); }
+  .level-tag.l4 { color: #F0C84E; border-color: rgba(240,200,78,0.25); background: rgba(240,200,78,0.06); }
+  .level-tag.l5 { color: #F06B4E; border-color: rgba(240,107,78,0.25); background: rgba(240,107,78,0.06); }
+
+  .progress-count { font-size: 12px; color: var(--text3); }
+  .progress-track { height: 3px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  .scenario-wrap { animation: fadeUp 0.5s 0.15s ease both; }
+
+  .scenario-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; position: relative; overflow: hidden; }
+  .scenario-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(200,240,78,0.3), transparent); }
+
+  .situation-label { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
+  .scenario-text { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 300; line-height: 1.6; color: var(--text); font-style: italic; }
+
+  .input-wrap { position: relative; margin-bottom: 14px; }
+  .input-wrap textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: none; min-height: 110px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.6; }
+  .input-wrap textarea::placeholder { color: var(--text3); }
+  .input-wrap textarea:focus { border-color: rgba(200,240,78,0.35); box-shadow: 0 0 0 3px rgba(200,240,78,0.06); }
+
+  .char-count { position: absolute; bottom: 14px; right: 16px; font-size: 11px; color: var(--text3); pointer-events: none; }
+
+  .btn-send { width: 100%; padding: 16px; background: var(--accent); color: #0E0E0F; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: transform 0.15s, opacity 0.15s, background 0.2s; letter-spacing: -0.2px; }
+  .btn-send:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-send:active { transform: scale(0.99); }
+  .btn-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  .loading-state { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+  .dots { display: flex; gap: 4px; }
+  .dots span { width: 5px; height: 5px; border-radius: 50%; background: #0E0E0F; animation: pulse 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse { 0%,80%,100%{opacity:0.3;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+
+  .feedback-wrap { animation: fadeUp 0.5s ease both; }
+
+  .your-reply { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px 18px; font-size: 14px; color: var(--text2); font-style: italic; margin-bottom: 16px; border-left: 2px solid var(--border2); line-height: 1.6; }
+
+  .scores-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .score-badge { font-size: 12px; font-weight: 500; padding: 5px 13px; border-radius: 99px; border: 1px solid; display: flex; align-items: center; gap: 5px; }
+  .score-badge.good { color: var(--good); border-color: rgba(78,240,154,0.25); background: rgba(78,240,154,0.06); }
+  .score-badge.ok   { color: var(--ok);  border-color: rgba(240,200,78,0.25); background: rgba(240,200,78,0.06); }
+  .score-badge.bad  { color: var(--bad); border-color: rgba(240,107,78,0.25); background: rgba(240,107,78,0.06); }
+  .score-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .good .score-dot { background: var(--good); }
+  .ok   .score-dot { background: var(--ok); }
+  .bad  .score-dot { background: var(--bad); }
+
+  .feedback-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 14px; }
+  .feedback-block-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+  .feedback-block p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+  .example-toggle { font-size: 13px; color: var(--accent); cursor: pointer; display: flex; align-items: center; gap: 6px; margin-top: 16px; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: opacity 0.2s; }
+  .example-toggle:hover { opacity: 0.7; }
+  .example-reveal { display: none; margin-top: 14px; }
+  .example-phrase { background: rgba(200,240,78,0.05); border: 1px solid rgba(200,240,78,0.15); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 17px; color: var(--text); font-style: italic; line-height: 1.5; font-family: 'Fraunces', serif; font-weight: 300; margin-bottom: 10px; }
+  .example-why { font-size: 13px; color: var(--text2); line-height: 1.7; padding: 8px 12px; background: var(--surface2); border-radius: var(--radius-sm); }
+  .example-why strong { color: var(--text); font-weight: 500; }
+
+  .btn-next { width: 100%; padding: 16px; background: transparent; color: var(--text); border: 1px solid var(--border2); border-radius: var(--radius); font-size: 15px; font-weight: 400; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.2s, transform 0.15s; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-next:hover { background: var(--surface2); transform: translateY(-1px); }
+
+  .skip-btn { background: none; border: none; color: var(--text3); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 14px; display: block; width: 100%; text-align: center; transition: color 0.2s; }
+  .skip-btn:hover { color: var(--text2); }
+
+  /* SUMMARY */
+  .summary-wrap { animation: fadeUp 0.5s ease both; }
+
+  .summary-hero { text-align: center; margin-bottom: 36px; }
+  .summary-hero .mark { font-family: 'Fraunces', serif; font-size: 52px; color: var(--accent); line-height: 1; margin-bottom: 16px; }
+  .summary-hero h2 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 300; color: var(--text); margin-bottom: 8px; }
+  .summary-hero p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+
+
+  .summary-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .summary-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(200,240,78,0.2), transparent); }
+  .summary-section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
+  .summary-section-text { font-size: 14px; color: var(--text2); line-height: 1.8; }
+
+  .exercises-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .exercise-item { display: flex; gap: 14px; align-items: flex-start; }
+  .exercise-num { width: 26px; height: 26px; border-radius: 50%; background: rgba(200,240,78,0.1); border: 1px solid rgba(200,240,78,0.2); color: var(--accent); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .exercise-text { font-size: 14px; color: var(--text2); line-height: 1.7; }
+  .exercise-text strong { color: var(--text); font-weight: 500; }
+
+  .summary-loading { text-align: center; padding: 48px 0; }
+  .summary-loading p { font-size: 14px; color: var(--text2); margin-top: 16px; }
+  .summary-loading .dots span { background: var(--accent); }
+
+  .btn-restart { width: 100%; padding: 16px; background: var(--accent); color: #0E0E0F; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: transform 0.15s, background 0.2s; margin-top: 8px; }
+  .btn-restart:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="glow-orb"></div>
+
+<div class="app">
+  <header class="app-header">
+    <div class="logo-block">
+      <h1>Fala <span>aí</span></h1>
+      <p>Treinador de conversa</p>
+    </div>
+    <div class="stats-chips">
+      <div class="chip">🔥 <strong id="streak-num">0</strong></div>
+      <div class="chip"><strong id="done-num">0</strong> / 8</div>
+    </div>
+  </header>
+
+  <div class="progress-section">
+    <div class="progress-meta">
+      <span class="level-tag" id="level-tag">Nível 1</span>
+      <span class="progress-count" id="progress-count">0 de 8</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div id="main-content"></div>
+</div>
+
+<script>
+const scenarios = [
+  { level:1, lclass:"l1", ltag:"Nível 1 · Pessoas próximas",
+    text:"Você está com sua melhor amiga, as duas no celular há uns dez minutos em silêncio. O que você faz pra retomar o papo?" },
+  { level:1, lclass:"l1", ltag:"Nível 1 · Pessoas próximas",
+    text:"Sua amiga te manda áudio contando algo chato que aconteceu com ela no trabalho. Você ouviu, entendeu, mas não sabe o que responder além de 'ai que chato'. O que você escreve?" },
+  { level:2, lclass:"l2", ltag:"Nível 2 · Conhecidos",
+    text:"Você está no ponto esperando transporte e uma colega que você conhece mas não tem muita intimidade aparece. Ela te viu e sorriu. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Nível 2 · Conhecidos",
+    text:"Uma amiga te apresentou pra uma amiga dela. As duas saíram por um segundo. Você e essa pessoa nova ficaram sozinhas. O que acontece?" },
+  { level:3, lclass:"l3", ltag:"Nível 3 · Grupo de amigos",
+    text:"Você está num grupo de quatro amigos e a conversa tá animada sobre um filme que você assistiu recentemente. Ninguém te perguntou nada. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Nível 3 · Grupo de amigos",
+    text:"Seu namorado está contando uma história pros amigos. Todo mundo tá rindo. Você estava lá quando aconteceu. O que você faz?" },
+  { level:4, lclass:"l4", ltag:"Nível 4 · Grupo misto",
+    text:"Você está numa saída com seu namorado e os amigos dele, pessoas que você viu poucas vezes. A conversa está em torno de um assunto que você não vivenciou. O que você faz?" },
+  { level:5, lclass:"l5", ltag:"Nível 5 · Pressão direta",
+    text:"Você está num grupo e alguém te pergunta diretamente na frente de todos: 'E você, o que você acha disso?' O que você faz?" }
+];
+
+const TOTAL = scenarios.length;
+let current = 0, done = 0, streak = 0;
+let allResults = [];
+
+function updateHeader() {
+  document.getElementById("streak-num").textContent = streak;
+  document.getElementById("done-num").textContent = done;
+  document.getElementById("progress-fill").style.width = Math.round((done / TOTAL) * 100) + "%";
+  document.getElementById("progress-count").textContent = done + " de " + TOTAL;
+  if (current < TOTAL) {
+    const s = scenarios[current];
+    const tag = document.getElementById("level-tag");
+    tag.textContent = s.ltag;
+    tag.className = "level-tag " + s.lclass;
+  }
+}
+
+function renderScenario() {
+  if (current >= TOTAL) { renderSummaryLoading(); return; }
+  const s = scenarios[current];
+  document.getElementById("main-content").innerHTML = `
+    <div class="scenario-wrap">
+      <div class="scenario-card">
+        <div class="situation-label">Situação ${current + 1} de ${TOTAL}</div>
+        <div class="scenario-text">${s.text}</div>
+      </div>
+      <div class="input-wrap">
+        <textarea id="user-input" placeholder="O que você falaria aqui? Escreve como vier, sem filtro..." maxlength="500" oninput="updateChar(this)"></textarea>
+        <span class="char-count" id="char-count">0 / 500</span>
+      </div>
+      <button class="btn-send" id="btn-send" onclick="submit()">Analisar resposta</button>
+      <button class="skip-btn" onclick="skipScenario()">pular esse cenário</button>
+    </div>`;
+  updateHeader();
+  setTimeout(() => document.getElementById("user-input")?.focus(), 100);
+}
+
+function updateChar(el) {
+  document.getElementById("char-count").textContent = el.value.length + " / 500";
+}
+
+function skipScenario() {
+  streak = 0; current++;
+  renderScenario(); updateHeader();
+}
+
+async function submit() {
+  const input = document.getElementById("user-input");
+  const btn = document.getElementById("btn-send");
+  const answer = (input.value || "").trim();
+  if (!answer || answer.length < 3) return;
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="loading-state"><span class="dots"><span></span><span></span><span></span></span> analisando...</span>`;
+
+  const s = scenarios[current];
+
+  const prompt = `Você é um coach de habilidades sociais experiente. Avalie a resposta abaixo com critérios claros e rigorosos.
+
+CENÁRIO: "${s.text}"
+RESPOSTA DA PESSOA: "${answer}"
+
+CRITÉRIOS DE AVALIAÇÃO:
+
+ABERTURA DE CONVERSA:
+- "boa": faz uma pergunta específica OU compartilha algo pessoal que convida o outro a falar
+- "média": reconhece o momento mas não cria gancho real
+- "baixa": monossilábica, encerra o assunto ou não faz nada
+
+ESPECIFICIDADE:
+- "boa": menciona algo concreto — um detalhe, um nome, uma situação específica
+- "média": fala sobre o tema mas sem detalhe real
+- "baixa": completamente vaga
+
+TOM:
+- "bom": aberto, curioso, leve — soa como alguém que quer continuar
+- "neutro": nem frio nem quente, funcional mas sem energia
+- "fechado": defensivo, muito curto, ou sinaliza que não quer continuar
+
+REGRA: Se a resposta faz uma pergunta direta e específica, mesmo que curta, é ABERTURA BOA e ESPECIFICIDADE BOA. Não penalize respostas curtas funcionais. Se foi bom, diga que foi bom.
+
+Retorne SOMENTE JSON válido, sem markdown:
+{
+  "abertura": "boa|média|baixa",
+  "especificidade": "boa|média|baixa",
+  "tom": "bom|neutro|fechado",
+  "feedback": "Máximo 2 frases. Primeira: o que funcionou (seja honesto). Segunda: uma sugestão prática ou, se foi ótimo, explique por que funcionou.",
+  "frase_exemplo": "Uma pergunta ou frase curta e natural para esse cenário. Sem floreios.",
+  "por_que_funciona": "Em uma frase: o que essa pergunta provoca na outra pessoa."
+}`;
+
+  try {
+    const res = await fetch("/api/claude", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 800,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content[0].text.trim().replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(raw);
+
+    allResults.push({
+      scenario: s.text,
+      answer: answer,
+      abertura: parsed.abertura,
+      especificidade: parsed.especificidade,
+      tom: parsed.tom,
+      feedback: parsed.feedback
+    });
+
+    done++; streak++; current++;
+    renderFeedback(answer, parsed, s);
+    updateHeader();
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = "Analisar resposta";
+  }
+}
+
+function scoreClass(val) {
+  if (val === "boa" || val === "bom") return "good";
+  if (val === "média" || val === "neutro") return "ok";
+  return "bad";
+}
+
+function scoreText(key, val) {
+  const labels = {
+    abertura:       { boa:"Abre conversa",  média:"Abre um pouco", baixa:"Fecha conversa" },
+    especificidade: { boa:"Específica",     média:"Genérica",      baixa:"Vaga"           },
+    tom:            { bom:"Tom aberto",     neutro:"Tom neutro",   fechado:"Tom fechado"  }
+  };
+  return labels[key]?.[val] || val;
+}
+
+function renderFeedback(answer, parsed, s) {
+  document.getElementById("main-content").innerHTML = `
+    <div class="feedback-wrap">
+      <div class="scenario-card" style="margin-bottom:16px;">
+        <div class="situation-label">Situação</div>
+        <div class="scenario-text">${s.text}</div>
+      </div>
+      <div class="your-reply">"${answer}"</div>
+      <div class="scores-row">
+        <span class="score-badge ${scoreClass(parsed.abertura)}"><span class="score-dot"></span>${scoreText("abertura", parsed.abertura)}</span>
+        <span class="score-badge ${scoreClass(parsed.especificidade)}"><span class="score-dot"></span>${scoreText("especificidade", parsed.especificidade)}</span>
+        <span class="score-badge ${scoreClass(parsed.tom)}"><span class="score-dot"></span>${scoreText("tom", parsed.tom)}</span>
+      </div>
+      <div class="feedback-block">
+        <div class="feedback-block-label">Análise</div>
+        <p>${parsed.feedback}</p>
+        <button class="example-toggle" id="ex-btn" onclick="toggleEx()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Ver exemplo de resposta
+        </button>
+        <div class="example-reveal" id="ex-reveal">
+          <div class="example-phrase">"${parsed.frase_exemplo}"</div>
+          <div class="example-why"><strong>Por que funciona:</strong> ${parsed.por_que_funciona}</div>
+        </div>
+      </div>
+      <button class="btn-next" onclick="renderScenario()">
+        ${current < TOTAL ? "Próxima situação" : "Ver meu resultado"}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>`;
+}
+
+function toggleEx() {
+  const box = document.getElementById("ex-reveal");
+  const btn = document.getElementById("ex-btn");
+  const open = box.style.display === "block";
+  box.style.display = open ? "none" : "block";
+  btn.innerHTML = open
+    ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ver exemplo de resposta`
+    : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Esconder exemplo`;
+}
+
+function renderSummaryLoading() {
+  const tag = document.getElementById("level-tag");
+  tag.textContent = "Resultado";
+  tag.className = "level-tag l3";
+  document.getElementById("progress-fill").style.width = "100%";
+  document.getElementById("progress-count").textContent = "completo";
+
+  document.getElementById("main-content").innerHTML = `
+    <div class="summary-loading">
+      <div class="dots" style="justify-content:center"><span></span><span></span><span></span></div>
+      <p>Analisando suas respostas...</p>
+    </div>`;
+
+  generateSummary();
+}
+
+async function generateSummary() {
+  const resultsText = allResults.map((r, i) =>
+    `Situação ${i+1}: "${r.scenario}"\nResposta: "${r.answer}"\nAbertura: ${r.abertura} | Especificidade: ${r.especificidade} | Tom: ${r.tom}\nFeedback: ${r.feedback}`
+  ).join("\n\n");
+
+  const prompt = `Você é um coach de habilidades sociais. Uma pessoa acabou de completar 8 exercícios práticos de conversa. Analise o desempenho dela e crie um resumo honesto e motivador.
+
+RESULTADOS:
+${resultsText}
+
+Com base nesses resultados, crie um relatório personalizado. Retorne SOMENTE JSON válido, sem markdown:
+{
+  "titulo": "Uma frase curta e honesta sobre o desempenho geral. Ex: 'Você tem mais do que imagina.' ou 'A base tá lá, falta soltar.'",
+  "resumo_geral": "2-3 frases descrevendo o padrão geral das respostas. O que ela faz bem? Onde trava com mais frequência? Seja específico com base nas respostas dela, não genérico.",
+  "ponto_forte": "Um parágrafo curto (2 frases) sobre o maior ponto forte observado nas respostas.",
+  "ponto_melhorar": "Um parágrafo curto (2 frases) sobre o principal padrão que precisa melhorar. Seja direto e específico.",
+  "exercicios": [
+    {
+      "titulo": "Nome curto do exercício",
+      "descricao": "Instrução prática e específica de como fazer. Deve ser algo que ela pode fazer hoje ou amanhã, no dia a dia real. Não pode ser vago."
+    },
+    {
+      "titulo": "Nome curto do exercício",
+      "descricao": "Instrução prática e específica."
+    },
+    {
+      "titulo": "Nome curto do exercício",
+      "descricao": "Instrução prática e específica."
+    }
+  ]
+}`;
+
+  try {
+    const res = await fetch("/api/claude", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content[0].text.trim().replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(raw);
+    renderSummary(parsed);
+  } catch(e) {
+    document.getElementById("main-content").innerHTML = `
+      <div class="summary-wrap">
+        <div class="summary-hero">
+          <div class="mark">✦</div>
+          <h2>Você completou tudo.</h2>
+          <p>Erro ao gerar o resumo. Tente recarregar a página.</p>
+        </div>
+        <button class="btn-restart" onclick="restart()">Recomeçar</button>
+      </div>`;
+  }
+}
+
+function renderSummary(data) {
+  const exercisesHTML = data.exercicios.map((ex, i) => `
+    <li class="exercise-item">
+      <span class="exercise-num">${i + 1}</span>
+      <span class="exercise-text"><strong>${ex.titulo}.</strong> ${ex.descricao}</span>
+    </li>`).join("");
+
+  document.getElementById("main-content").innerHTML = `
+    <div class="summary-wrap">
+      <div class="summary-hero">
+        <div class="mark">✦</div>
+        <h2>${data.titulo}</h2>
+        <p>${data.resumo_geral}</p>
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-label">Ponto forte</div>
+        <div class="summary-section-text">${data.ponto_forte}</div>
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-label">O que trabalhar</div>
+        <div class="summary-section-text">${data.ponto_melhorar}</div>
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-label">Exercícios práticos pra agora</div>
+        <ul class="exercises-list">${exercisesHTML}</ul>
+      </div>
+
+      <button class="btn-restart" onclick="restart()">Fazer de novo</button>
+    </div>`;
+}
+
+function restart() {
+  current = 0; done = 0; streak = 0; allResults = [];
+  renderScenario(); updateHeader();
+}
+
+renderScenario();
+</script>
+</body>
+</html>
