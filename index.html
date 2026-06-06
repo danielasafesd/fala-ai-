@@ -551,7 +551,7 @@ Retorne SOMENTE JSON válido, sem markdown:
 }`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -688,7 +688,7 @@ Com base nesses resultados, crie um relatório personalizado. Retorne SOMENTE JS
 }`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
