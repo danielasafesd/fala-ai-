@@ -555,7 +555,7 @@ Retorne SOMENTE JSON válido, sem markdown:
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5",
         max_tokens: 800,
         messages: [{ role: "user", content: prompt }]
       })
@@ -692,7 +692,7 @@ Com base nesses resultados, crie um relatório personalizado. Retorne SOMENTE JS
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5",
         max_tokens: 1200,
         messages: [{ role: "user", content: prompt }]
       })
