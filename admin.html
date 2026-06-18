@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fala Aí — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E0E0F;
+    --surface: #181819;
+    --surface2: #222224;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #C8F04E;
+    --text: #F0EEE8;
+    --text2: #999891;
+    --text3: #555450;
+    --good: #4EF09A;
+    --ok: #F0C84E;
+    --bad: #F06B4E;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  .app { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; }
+  .header h1 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 300; }
+  .header h1 span { color: var(--accent); font-style: italic; }
+  .header p { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .refresh-btn { background: var(--surface); border: 1px solid var(--border2); color: var(--text2); font-size: 13px; font-family: 'DM Sans', sans-serif; padding: 8px 16px; border-radius: 99px; cursor: pointer; transition: color 0.2s; }
+  .refresh-btn:hover { color: var(--text); }
+
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .stat-num { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 300; color: var(--accent); line-height: 1; }
+  .stat-lbl { font-size: 12px; color: var(--text3); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .empty { text-align: center; padding: 80px 0; color: var(--text3); font-size: 14px; }
+
+  .session-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
+
+  .session-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+  .session-header:hover { background: var(--surface2); }
+
+  .session-meta { display: flex; align-items: center; gap: 16px; }
+  .session-id { font-size: 11px; color: var(--text3); font-family: monospace; }
+  .session-date { font-size: 13px; color: var(--text2); }
+  .session-count { font-size: 12px; color: var(--text3); }
+
+  .score-chips { display: flex; gap: 6px; }
+  .chip-good { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; color: var(--good); background: rgba(78,240,154,0.08); border: 1px solid rgba(78,240,154,0.2); }
+  .chip-ok { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; color: var(--ok); background: rgba(240,200,78,0.08); border: 1px solid rgba(240,200,78,0.2); }
+  .chip-bad { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; color: var(--bad); background: rgba(240,107,78,0.08); border: 1px solid rgba(240,107,78,0.2); }
+
+  .chevron { color: var(--text3); font-size: 18px; transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  .session-body { display: none; padding: 0 24px 24px; }
+  .session-body.open { display: block; }
+
+  .question-block { border-top: 1px solid var(--border); padding: 20px 0; }
+  .question-block:first-child { border-top: none; padding-top: 24px; }
+
+  .q-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+  .q-text { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 300; font-style: italic; color: var(--text); line-height: 1.5; margin-bottom: 14px; }
+
+  .answer-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 14px; color: var(--text2); font-style: italic; line-height: 1.6; margin-bottom: 12px; border-left: 2px solid var(--border2); }
+
+  .scores-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .score-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; border: 1px solid; }
+  .score-badge.good { color: var(--good); border-color: rgba(78,240,154,0.25); background: rgba(78,240,154,0.06); }
+  .score-badge.ok   { color: var(--ok);  border-color: rgba(240,200,78,0.25); background: rgba(240,200,78,0.06); }
+  .score-badge.bad  { color: var(--bad); border-color: rgba(240,107,78,0.25); background: rgba(240,107,78,0.06); }
+
+  .ai-feedback { font-size: 13px; color: var(--text2); line-height: 1.7; padding: 10px 14px; background: rgba(200,240,78,0.04); border: 1px solid rgba(200,240,78,0.1); border-radius: var(--radius-sm); }
+  .ai-feedback-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+
+  .summary-block { background: var(--surface2); border-radius: var(--radius-sm); padding: 16px; margin-top: 20px; }
+  .summary-block-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+  .summary-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 300; color: var(--accent); margin-bottom: 8px; }
+  .summary-text { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 10px; }
+  .summary-section-title { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0 4px; }
+
+  .loading { text-align: center; padding: 60px 0; color: var(--text3); font-size: 14px; }
+  .dots { display: inline-flex; gap: 4px; margin-right: 8px; }
+  .dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation: fadeUp 0.4s ease both; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>Fala <span>aí</span> — Admin</h1>
+      <p>Painel de sessões e respostas</p>
+    </div>
+    <button class="refresh-btn" onclick="loadSessions()">↻ Atualizar</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total">—</div>
+      <div class="stat-lbl">Sessões totais</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-respostas">—</div>
+      <div class="stat-lbl">Respostas analisadas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-boas">—</div>
+      <div class="stat-lbl">Aberturas boas</div>
+    </div>
+  </div>
+
+  <div id="sessions-list">
+    <div class="loading"><span class="dots"><span></span><span></span><span></span></span> Carregando sessões...</div>
+  </div>
+</div>
+
+<script>
+function scoreClass(val) {
+  if (val === "boa" || val === "bom") return "good";
+  if (val === "média" || val === "neutro") return "ok";
+  return "bad";
+}
+
+function scoreLabel(key, val) {
+  const m = {
+    abertura: { boa:"Abre conversa", média:"Abre um pouco", baixa:"Fecha conversa" },
+    especificidade: { boa:"Específica", média:"Genérica", baixa:"Vaga" },
+    tom: { bom:"Tom aberto", neutro:"Tom neutro", fechado:"Tom fechado" }
+  };
+  return m[key]?.[val] || val;
+}
+
+function formatDate(id) {
+  const ts = parseInt(id.replace("session:", ""));
+  if (isNaN(ts)) return "—";
+  return new Date(ts).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
+}
+
+function countBoas(results) {
+  return (results || []).filter(r => r.abertura === "boa").length;
+}
+
+function toggleSession(id) {
+  const body = document.getElementById(`body-${id}`);
+  const chevron = document.getElementById(`chevron-${id}`);
+  body.classList.toggle("open");
+  chevron.classList.toggle("open");
+}
+
+function renderSession(s, index) {
+  const results = s.results || [];
+  const summary = s.summary || null;
+  const boas = countBoas(results);
+  const medias = results.filter(r => r.abertura === "média").length;
+  const baixas = results.filter(r => r.abertura === "baixa").length;
+  const safeId = `s${index}`;
+
+  const questionsHTML = results.map((r, i) => `
+    <div class="question-block">
+      <div class="q-label">Situação ${i + 1} · ${r.category || ""}</div>
+      <div class="q-text">${r.scenario}</div>
+      <div class="answer-box">"${r.answer}"</div>
+      <div class="scores-row">
+        <span class="score-badge ${scoreClass(r.abertura)}">${scoreLabel("abertura", r.abertura)}</span>
+        <span class="score-badge ${scoreClass(r.especificidade)}">${scoreLabel("especificidade", r.especificidade)}</span>
+        <span class="score-badge ${scoreClass(r.tom)}">${scoreLabel("tom", r.tom)}</span>
+      </div>
+      <div class="ai-feedback-label">Análise da IA</div>
+      <div class="ai-feedback">${r.feedback}</div>
+    </div>
+  `).join("");
+
+  const summaryHTML = summary ? `
+    <div class="summary-block">
+      <div class="summary-block-label">Resumo gerado pela IA</div>
+      <div class="summary-title">${summary.titulo || ""}</div>
+      <div class="summary-text">${summary.resumo_geral || ""}</div>
+      <div class="summary-section-title">Ponto forte</div>
+      <div class="summary-text">${summary.ponto_forte || ""}</div>
+      <div class="summary-section-title">O que trabalhar</div>
+      <div class="summary-text">${summary.ponto_melhorar || ""}</div>
+    </div>
+  ` : "";
+
+  return `
+    <div class="session-card fade-in">
+      <div class="session-header" onclick="toggleSession('${safeId}')">
+        <div class="session-meta">
+          <span class="session-date">${formatDate(s.id)}</span>
+          <span class="session-count">${results.length} respostas</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="score-chips">
+            ${boas > 0 ? `<span class="chip-good">${boas} boas</span>` : ""}
+            ${medias > 0 ? `<span class="chip-ok">${medias} médias</span>` : ""}
+            ${baixas > 0 ? `<span class="chip-bad">${baixas} baixas</span>` : ""}
+          </div>
+          <span class="chevron" id="chevron-${safeId}">▾</span>
+        </div>
+      </div>
+      <div class="session-body" id="body-${safeId}">
+        ${questionsHTML}
+        ${summaryHTML}
+      </div>
+    </div>
+  `;
+}
+
+async function loadSessions() {
+  document.getElementById("sessions-list").innerHTML = `<div class="loading"><span class="dots"><span></span><span></span><span></span></span> Carregando sessões...</div>`;
+
+  try {
+    const res = await fetch("/api/get-sessions");
+    const sessions = await res.json();
+
+    if (!sessions.length) {
+      document.getElementById("sessions-list").innerHTML = `<div class="empty">Nenhuma sessão registrada ainda.</div>`;
+      document.getElementById("stat-total").textContent = "0";
+      document.getElementById("stat-respostas").textContent = "0";
+      document.getElementById("stat-boas").textContent = "0";
+      return;
+    }
+
+    const totalRespostas = sessions.reduce((acc, s) => acc + (s.results || []).length, 0);
+    const totalBoas = sessions.reduce((acc, s) => acc + countBoas(s.results || []), 0);
+
+    document.getElementById("stat-total").textContent = sessions.length;
+    document.getElementById("stat-respostas").textContent = totalRespostas;
+    document.getElementById("stat-boas").textContent = totalBoas;
+
+    document.getElementById("sessions-list").innerHTML = sessions.map((s, i) => renderSession(s, i)).join("");
+  } catch(e) {
+    document.getElementById("sessions-list").innerHTML = `<div class="empty">Erro ao carregar sessões.</div>`;
+  }
+}
+
+loadSessions();
+</script>
+</body>
+</html>
