@@ -4,11 +4,12 @@ export default async function handler(req, res) {
   }
 
   try {
+    const url = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
+
     // Get all session IDs
-    const listRes = await fetch(`${process.env.KV_REST_API_URL}/lrange/sessions/0/99`, {
-      headers: {
-        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`
-      }
+    const listRes = await fetch(`${url}/lrange/sessions/0/99`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
     const listData = await listRes.json();
     const ids = listData.result || [];
@@ -16,14 +17,13 @@ export default async function handler(req, res) {
     // Get each session
     const sessions = await Promise.all(
       ids.map(async (id) => {
-        const r = await fetch(`${process.env.KV_REST_API_URL}/get/${id}`, {
-          headers: {
-            Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`
-          }
+        const r = await fetch(`${url}/get/${encodeURIComponent(id)}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         const d = await r.json();
         try {
-          return { id, ...JSON.parse(d.result) };
+          const parsed = JSON.parse(d.result);
+          return { id, ...parsed };
         } catch {
           return null;
         }
