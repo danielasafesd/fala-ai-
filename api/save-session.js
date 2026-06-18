@@ -6,24 +6,19 @@ export default async function handler(req, res) {
   try {
     const session = req.body;
     const id = `session:${Date.now()}`;
+    const url = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
 
-    const response = await fetch(`${process.env.KV_REST_API_URL}/set/${id}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ value: JSON.stringify(session) })
+    // Save session data
+    await fetch(`${url}/set/${encodeURIComponent(id)}/${encodeURIComponent(JSON.stringify(session))}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    // Also add to index list
-    await fetch(`${process.env.KV_REST_API_URL}/lpush/sessions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ value: id })
+    // Add ID to list
+    await fetch(`${url}/lpush/sessions/${encodeURIComponent(id)}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     return res.status(200).json({ ok: true, id });
