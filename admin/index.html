@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fala Aí — Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Fala Aí — Treinador Social</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0E0E0F;
@@ -13,6 +13,7 @@
     --border: rgba(255,255,255,0.07);
     --border2: rgba(255,255,255,0.12);
     --accent: #C8F04E;
+    --accent2: #A8D93E;
     --text: #F0EEE8;
     --text2: #999891;
     --text3: #555450;
@@ -24,229 +25,759 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
 
-  .app { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+  .noise {
+    position: fixed; inset: 0; opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
 
-  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; }
-  .header h1 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 300; }
-  .header h1 span { color: var(--accent); font-style: italic; }
-  .header p { font-size: 13px; color: var(--text2); margin-top: 4px; }
-  .refresh-btn { background: var(--surface); border: 1px solid var(--border2); color: var(--text2); font-size: 13px; font-family: 'DM Sans', sans-serif; padding: 8px 16px; border-radius: 99px; cursor: pointer; transition: color 0.2s; }
-  .refresh-btn:hover { color: var(--text); }
+  .glow-orb {
+    position: fixed; width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,240,78,0.06) 0%, transparent 70%);
+    top: -200px; right: -100px; pointer-events: none; z-index: 0;
+  }
 
-  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-  .stat-num { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 300; color: var(--accent); line-height: 1; }
-  .stat-lbl { font-size: 12px; color: var(--text3); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .app { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
 
-  .empty { text-align: center; padding: 80px 0; color: var(--text3); font-size: 14px; }
+  .app-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 48px; animation: fadeUp 0.6s ease both; }
 
-  .session-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
+  .logo-block h1 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 300; letter-spacing: -0.5px; color: var(--text); line-height: 1; }
+  .logo-block h1 span { color: var(--accent); font-style: italic; }
+  .logo-block p { font-size: 13px; color: var(--text2); margin-top: 6px; font-weight: 300; }
 
-  .session-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
-  .session-header:hover { background: var(--surface2); }
+  .stats-chips { display: flex; gap: 8px; align-items: center; }
+  .chip { background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 6px 14px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 5px; }
+  .chip strong { color: var(--text); font-weight: 500; }
 
-  .session-meta { display: flex; align-items: center; gap: 16px; }
-  .session-id { font-size: 11px; color: var(--text3); font-family: monospace; }
-  .session-date { font-size: 13px; color: var(--text2); }
-  .session-count { font-size: 12px; color: var(--text3); }
+  .progress-section { margin-bottom: 36px; animation: fadeUp 0.6s 0.1s ease both; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 
-  .score-chips { display: flex; gap: 6px; }
-  .chip-good { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; color: var(--good); background: rgba(78,240,154,0.08); border: 1px solid rgba(78,240,154,0.2); }
-  .chip-ok { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; color: var(--ok); background: rgba(240,200,78,0.08); border: 1px solid rgba(240,200,78,0.2); }
-  .chip-bad { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; color: var(--bad); background: rgba(240,107,78,0.08); border: 1px solid rgba(240,107,78,0.2); }
+  .level-tag { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 12px; border-radius: 99px; border: 1px solid; }
+  .level-tag.l1 { color: #4EF09A; border-color: rgba(78,240,154,0.25); background: rgba(78,240,154,0.06); }
+  .level-tag.l2 { color: #4EC8F0; border-color: rgba(78,200,240,0.25); background: rgba(78,200,240,0.06); }
+  .level-tag.l3 { color: #C8F04E; border-color: rgba(200,240,78,0.25); background: rgba(200,240,78,0.06); }
+  .level-tag.l4 { color: #F0C84E; border-color: rgba(240,200,78,0.25); background: rgba(240,200,78,0.06); }
+  .level-tag.l5 { color: #F06B4E; border-color: rgba(240,107,78,0.25); background: rgba(240,107,78,0.06); }
 
-  .chevron { color: var(--text3); font-size: 18px; transition: transform 0.2s; }
-  .chevron.open { transform: rotate(180deg); }
+  .progress-count { font-size: 12px; color: var(--text3); }
+  .progress-track { height: 3px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-  .session-body { display: none; padding: 0 24px 24px; }
-  .session-body.open { display: block; }
+  .scenario-wrap { animation: fadeUp 0.5s 0.15s ease both; }
 
-  .question-block { border-top: 1px solid var(--border); padding: 20px 0; }
-  .question-block:first-child { border-top: none; padding-top: 24px; }
+  .scenario-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; position: relative; overflow: hidden; }
+  .scenario-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(200,240,78,0.3), transparent); }
 
-  .q-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
-  .q-text { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 300; font-style: italic; color: var(--text); line-height: 1.5; margin-bottom: 14px; }
+  .situation-label { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
+  .scenario-text { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 300; line-height: 1.6; color: var(--text); font-style: italic; }
 
-  .answer-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 14px; color: var(--text2); font-style: italic; line-height: 1.6; margin-bottom: 12px; border-left: 2px solid var(--border2); }
+  .input-wrap { position: relative; margin-bottom: 14px; }
+  .input-wrap textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--text); resize: none; min-height: 110px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.6; }
+  .input-wrap textarea::placeholder { color: var(--text3); }
+  .input-wrap textarea:focus { border-color: rgba(200,240,78,0.35); box-shadow: 0 0 0 3px rgba(200,240,78,0.06); }
 
-  .scores-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-  .score-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 99px; border: 1px solid; }
+  .char-count { position: absolute; bottom: 14px; right: 16px; font-size: 11px; color: var(--text3); pointer-events: none; }
+
+  .btn-send { width: 100%; padding: 16px; background: var(--accent); color: #0E0E0F; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: transform 0.15s, opacity 0.15s, background 0.2s; letter-spacing: -0.2px; }
+  .btn-send:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-send:active { transform: scale(0.99); }
+  .btn-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  .loading-state { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; }
+  .dots { display: flex; gap: 4px; }
+  .dots span { width: 5px; height: 5px; border-radius: 50%; background: #0E0E0F; animation: pulse 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse { 0%,80%,100%{opacity:0.3;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+
+  .feedback-wrap { animation: fadeUp 0.5s ease both; }
+
+  .your-reply { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px 18px; font-size: 14px; color: var(--text2); font-style: italic; margin-bottom: 16px; border-left: 2px solid var(--border2); line-height: 1.6; }
+
+  .scores-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .score-badge { font-size: 12px; font-weight: 500; padding: 5px 13px; border-radius: 99px; border: 1px solid; display: flex; align-items: center; gap: 5px; }
   .score-badge.good { color: var(--good); border-color: rgba(78,240,154,0.25); background: rgba(78,240,154,0.06); }
   .score-badge.ok   { color: var(--ok);  border-color: rgba(240,200,78,0.25); background: rgba(240,200,78,0.06); }
   .score-badge.bad  { color: var(--bad); border-color: rgba(240,107,78,0.25); background: rgba(240,107,78,0.06); }
+  .score-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .good .score-dot { background: var(--good); }
+  .ok   .score-dot { background: var(--ok); }
+  .bad  .score-dot { background: var(--bad); }
 
-  .ai-feedback { font-size: 13px; color: var(--text2); line-height: 1.7; padding: 10px 14px; background: rgba(200,240,78,0.04); border: 1px solid rgba(200,240,78,0.1); border-radius: var(--radius-sm); }
-  .ai-feedback-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+  .feedback-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 14px; }
+  .feedback-block-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+  .feedback-block p { font-size: 14px; color: var(--text2); line-height: 1.7; }
 
-  .summary-block { background: var(--surface2); border-radius: var(--radius-sm); padding: 16px; margin-top: 20px; }
-  .summary-block-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
-  .summary-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 300; color: var(--accent); margin-bottom: 8px; }
-  .summary-text { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 10px; }
-  .summary-section-title { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin: 12px 0 4px; }
+  .example-toggle { font-size: 13px; color: var(--accent); cursor: pointer; display: flex; align-items: center; gap: 6px; margin-top: 16px; background: none; border: none; font-family: 'DM Sans', sans-serif; padding: 0; transition: opacity 0.2s; }
+  .example-toggle:hover { opacity: 0.7; }
+  .example-reveal { display: none; margin-top: 14px; }
+  .example-phrase { background: rgba(200,240,78,0.05); border: 1px solid rgba(200,240,78,0.15); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 17px; color: var(--text); font-style: italic; line-height: 1.5; font-family: 'Fraunces', serif; font-weight: 300; margin-bottom: 10px; }
+  .example-why { font-size: 13px; color: var(--text2); line-height: 1.7; padding: 8px 12px; background: var(--surface2); border-radius: var(--radius-sm); }
+  .example-why strong { color: var(--text); font-weight: 500; }
 
-  .loading { text-align: center; padding: 60px 0; color: var(--text3); font-size: 14px; }
-  .dots { display: inline-flex; gap: 4px; margin-right: 8px; }
-  .dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite; }
-  .dots span:nth-child(2) { animation-delay: 0.2s; }
-  .dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes pulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-  .fade-in { animation: fadeUp 0.4s ease both; }
+  .btn-next { width: 100%; padding: 16px; background: transparent; color: var(--text); border: 1px solid var(--border2); border-radius: var(--radius); font-size: 15px; font-weight: 400; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.2s, transform 0.15s; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-next:hover { background: var(--surface2); transform: translateY(-1px); }
+
+  .skip-btn { background: none; border: none; color: var(--text3); font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 14px; display: block; width: 100%; text-align: center; transition: color 0.2s; }
+  .skip-btn:hover { color: var(--text2); }
+
+  /* SUMMARY */
+  .summary-wrap { animation: fadeUp 0.5s ease both; }
+
+  .summary-hero { text-align: center; margin-bottom: 36px; }
+  .summary-hero .mark { font-family: 'Fraunces', serif; font-size: 52px; color: var(--accent); line-height: 1; margin-bottom: 16px; }
+  .summary-hero h2 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 300; color: var(--text); margin-bottom: 8px; }
+  .summary-hero p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+
+
+  .summary-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .summary-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(200,240,78,0.2), transparent); }
+  .summary-section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
+  .summary-section-text { font-size: 14px; color: var(--text2); line-height: 1.8; }
+
+  .exercises-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .exercise-item { display: flex; gap: 14px; align-items: flex-start; }
+  .exercise-num { width: 26px; height: 26px; border-radius: 50%; background: rgba(200,240,78,0.1); border: 1px solid rgba(200,240,78,0.2); color: var(--accent); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .exercise-text { font-size: 14px; color: var(--text2); line-height: 1.7; }
+  .exercise-text strong { color: var(--text); font-weight: 500; }
+
+  .summary-loading { text-align: center; padding: 48px 0; }
+  .summary-loading p { font-size: 14px; color: var(--text2); margin-top: 16px; }
+  .summary-loading .dots span { background: var(--accent); }
+
+  .btn-restart { width: 100%; padding: 16px; background: var(--accent); color: #0E0E0F; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: transform 0.15s, background 0.2s; margin-top: 8px; }
+  .btn-restart:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
 </style>
 </head>
 <body>
+<div class="noise"></div>
+<div class="glow-orb"></div>
+
 <div class="app">
-  <div class="header">
-    <div>
-      <h1>Fala <span>aí</span> — Admin</h1>
-      <p>Painel de sessões e respostas</p>
+  <header class="app-header">
+    <div class="logo-block">
+      <h1>Fala <span>aí</span></h1>
+      <p>Treinador de conversa</p>
     </div>
-    <button class="refresh-btn" onclick="loadSessions()">↻ Atualizar</button>
-  </div>
+    <div class="stats-chips">
+      <div class="chip">🔥 <strong id="streak-num">0</strong></div>
+      <div class="chip"><strong id="done-num">0</strong> / 8</div>
+    </div>
+  </header>
 
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-total">—</div>
-      <div class="stat-lbl">Sessões totais</div>
+  <div class="progress-section">
+    <div class="progress-meta">
+      <span class="level-tag" id="level-tag">Nível 1</span>
+      <span class="progress-count" id="progress-count">0 de 8</span>
     </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-respostas">—</div>
-      <div class="stat-lbl">Respostas analisadas</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-boas">—</div>
-      <div class="stat-lbl">Aberturas boas</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
     </div>
   </div>
 
-  <div id="sessions-list">
-    <div class="loading"><span class="dots"><span></span><span></span><span></span></span> Carregando sessões...</div>
-  </div>
+  <div id="main-content"></div>
 </div>
 
 <script>
+const scenarios = [
+
+  // PESSOAS PRÓXIMAS
+  { level:1, lclass:"l1", ltag:"Pessoas próximas",
+    text:"Você está com sua melhor amiga, as duas no celular há uns dez minutos em silêncio. O que você faz pra retomar o papo?" },
+  { level:1, lclass:"l1", ltag:"Pessoas próximas",
+    text:"Sua amiga te manda áudio contando algo chato que aconteceu com ela no trabalho. Não sabe o que responder além de 'ai que chato'. O que você escreve?" },
+  { level:1, lclass:"l1", ltag:"Pessoas próximas",
+    text:"Você e seu namorado estão esperando o pedido chegar num restaurante. Já conversaram sobre o dia. Silêncio. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Pessoas próximas",
+    text:"Uma amiga próxima está visivelmente de mau humor mas disse que está bem. Você quer saber mas não quer forçar. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Pessoas próximas",
+    text:"Sua amiga começa a contar sobre um problema com o namorado dela. Você não sabe muito o que falar sobre relacionamento. Como você reage?" },
+  { level:2, lclass:"l2", ltag:"Pessoas próximas",
+    text:"Você está com uma amiga que fala muito e nunca te deixa falar. Tem algo que você quer contar. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pessoas próximas",
+    text:"Seu namorado te pergunta o que você está pensando. Você estava pensando em algo pessoal que nunca falou pra ninguém. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pessoas próximas",
+    text:"Uma amiga próxima fez algo que te magoou mas não percebeu. Você está quieta faz dois dias. Ela pergunta se você está bem. O que você responde?" },
+  { level:3, lclass:"l3", ltag:"Pessoas próximas",
+    text:"Seu namorado pede pra você contar como foi seu dia com detalhes. Você acha que não aconteceu nada interessante. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pessoas próximas",
+    text:"Uma amiga te elogia na frente de outras pessoas dizendo que você é incrível. Todo mundo olha esperando você reagir. O que você faz?" },
+
+  // GRUPO DE AMIGOS
+  { level:1, lclass:"l1", ltag:"Grupo de amigos",
+    text:"Você está num grupo de quatro amigas e a conversa tá animada sobre um filme que você assistiu. Ninguém te perguntou nada. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Grupo de amigos",
+    text:"Alguém faz uma piada sobre um assunto que você conhece bem. Você tem algo a adicionar que ficaria mais engraçado. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Grupo de amigos",
+    text:"Seu namorado está contando uma história e você estava lá quando aconteceu. Tem um detalhe engraçado pra adicionar. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Grupo de amigos",
+    text:"Alguém sugere uma atividade que você não quer fazer mas todas parecem animadas. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Grupo de amigos",
+    text:"O grupo está decidindo onde jantar. Você tem preferência mas ninguém perguntou. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Grupo de amigos",
+    text:"A conversa vai pra um assunto que você odeia. Todo mundo está animado. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Grupo de amigos",
+    text:"Você está numa saída com amigos do namorado que você conhece pouco. A conversa é sobre algo que você não vivenciou. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Grupo de amigos",
+    text:"Alguém que você mal conhece começa a falar diretamente com você sobre um assunto polêmico. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Grupo de amigos",
+    text:"Você está num grupo onde todo mundo se conhece menos você. A conversa é cheia de referências internas. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Grupo de amigos",
+    text:"Você está numa saída e a conversa cai num assunto que você sabe bastante. Mas você nunca fala muito nesse grupo. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Grupo de amigos",
+    text:"Alguém conta uma história que você sabe que não é bem assim. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Grupo de amigos",
+    text:"Você percebe que duas pessoas estão tendo uma discussão velada. Todo mundo está desconfortável. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Grupo de amigos",
+    text:"Você está numa saída com pessoas do trabalho do namorado. São mais velhas e falam sobre assuntos que você não tem referência. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Grupo de amigos",
+    text:"Alguém pergunta pra mesa toda: 'Qual foi a pior situação embaraçosa que vocês já passaram?' O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Grupo de amigos",
+    text:"Alguém faz uma piada que você achou ofensiva. Ninguém mais se incomodou. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Grupo de amigos",
+    text:"Percebe que estão falando sobre alguém que você conhece de forma negativa. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Grupo de amigos",
+    text:"Alguém te apresenta como 'a namorada quietinha'. Todo mundo ri. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Grupo de amigos",
+    text:"Você ficou em silêncio por muito tempo num grupo animado. As pessoas começam a notar. O que você faz?" },
+
+  // CHURRASCO E FESTAS
+  { level:1, lclass:"l1", ltag:"Churrasco e festas",
+    text:"Você está num churrasco com amigas próximas e tem algo engraçado pra contar mas a conversa não para. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Churrasco e festas",
+    text:"Você está numa festa de aniversário de amiga próxima. Você conhece a maioria. Clima leve. Como você age?" },
+  { level:1, lclass:"l1", ltag:"Churrasco e festas",
+    text:"Você está num churrasco e a pessoa do seu lado começa a te fazer perguntas sobre sua vida. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Churrasco e festas",
+    text:"Você está num churrasco com amigos do namorado falando sobre esportes e você não entende nada. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Churrasco e festas",
+    text:"Você está numa festa e sua amiga some com alguém. Você fica sozinha sem conhecer as outras pessoas. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Churrasco e festas",
+    text:"Alguém que você não conhece tenta puxar papo na fila da carne do churrasco. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Churrasco e festas",
+    text:"O aniversariante te apresenta pra várias pessoas de uma vez. Todos olham esperando algo. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Churrasco e festas",
+    text:"Você percebe que está num canto sozinha enquanto todo mundo está em grupos conversando. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Churrasco e festas",
+    text:"Uma pessoa começa a dançar perto de você e tenta te puxar pra dançar junto. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Churrasco e festas",
+    text:"Alguém propõe uma brincadeira onde cada um tem que contar algo sobre si mesmo. Chega sua vez. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Churrasco e festas",
+    text:"Alguém grita seu nome chamando você pra um grupo que está fazendo algo animado. Todos olham. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Churrasco e festas",
+    text:"A pessoa ao seu lado pergunta por que você está tão quieta. Todo mundo vira pra te olhar. O que você responde?" },
+  { level:3, lclass:"l3", ltag:"Churrasco e festas",
+    text:"Você está numa festa de formatura onde conhece pouquíssimas pessoas. Alguém te reconhece e faz questão de te apresentar pra todo mundo. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Churrasco e festas",
+    text:"Alguém propõe um jogo onde cada um faz uma pergunta íntima pra pessoa do lado. Você é a próxima. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Churrasco e festas",
+    text:"Uma pessoa que claramente gosta de você tenta conversar. Você não tem interesse mas não quer ser grossa. O que você faz?" },
+
+  // FAMÍLIA DO NAMORADO
+  { level:1, lclass:"l1", ltag:"Família do namorado",
+    text:"Você está na casa do namorado pela terceira vez. A mãe dele está na cozinha e vocês ficam sozinhos por um momento. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Família do namorado",
+    text:"Você está num almoço em família. A conversa está animada e alguém faz uma pergunta geral pra mesa. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Família do namorado",
+    text:"A mãe do namorado te elogia na frente de todos. O que você responde?" },
+  { level:2, lclass:"l2", ltag:"Família do namorado",
+    text:"Seu namorado sai por um momento e você fica sozinha com os pais dele. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Família do namorado",
+    text:"O pai do namorado pergunta sobre seus planos pro futuro na frente de toda a família. O que você responde?" },
+  { level:2, lclass:"l2", ltag:"Família do namorado",
+    text:"Você percebe que ficou em silêncio por longo tempo num almoço em família enquanto todos conversam. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Família do namorado",
+    text:"A irmã do namorado tenta puxar papo sobre um assunto que você não conhece nada. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Família do namorado",
+    text:"Alguém na família faz uma piada que você não entendeu. Todo mundo ri. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Família do namorado",
+    text:"A mãe do namorado te pergunta se você quer ajudar na cozinha. Você não sabe cozinhar quase nada. O que você responde?" },
+  { level:3, lclass:"l3", ltag:"Família do namorado",
+    text:"É a primeira vez que você vai na casa do namorado. A família toda está lá esperando. Você entra pela porta. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Família do namorado",
+    text:"Num jantar, a mãe do namorado faz uma pergunta direta sobre o relacionamento de vocês. Todos param pra ouvir. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Família do namorado",
+    text:"Você percebe que a mãe dele não está te tratando muito bem. Seu namorado não percebeu. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Família do namorado",
+    text:"A avó do namorado te faz várias perguntas íntimas sobre sua família e planos. Todos estão ouvindo. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Família do namorado",
+    text:"Você está num churrasco grande da família do namorado com mais de 20 pessoas. Seu namorado some pra ajudar. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Família do namorado",
+    text:"O pai do namorado discorda de uma opinião que você deu. Todos ficam em silêncio esperando você responder. O que você faz?" },
+
+  // CONHECIDOS
+  { level:1, lclass:"l1", ltag:"Conhecidos",
+    text:"Você está no ponto e uma colega que você conhece mas não tem intimidade aparece. Ela te viu e sorriu. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Conhecidos",
+    text:"Você encontra uma pessoa que estudou com você anos atrás. Ela te reconhece animada. Vocês nunca foram próximas. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Conhecidos",
+    text:"Uma amiga te apresentou pra uma amiga dela. As duas saíram. Você e essa pessoa ficaram sozinhas. O que acontece?" },
+  { level:2, lclass:"l2", ltag:"Conhecidos",
+    text:"Você encontra uma conhecida na rua. Ela para pra conversar mas você estava com pressa. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Conhecidos",
+    text:"Um amigo do namorado tenta te incluir na conversa fazendo perguntas diretas sobre você. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Conhecidos",
+    text:"Uma pessoa que você conhece superficialmente começa a te contar problemas pessoais dela. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Conhecidos",
+    text:"Você encontra uma colega que sempre foi legal mas com quem nunca desenvolveu amizade. Ela sugere marcar de sair. O que você responde?" },
+  { level:2, lclass:"l2", ltag:"Conhecidos",
+    text:"Um amigo de amigo claramente quer te conhecer melhor e está fazendo várias perguntas. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Conhecidos",
+    text:"Você está num evento e reconhece alguém famoso no círculo do namorado. Essa pessoa tenta puxar papo. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Conhecidos",
+    text:"Um conhecido faz uma pergunta que você acha invasiva sobre sua vida pessoal. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Conhecidos",
+    text:"Uma pessoa muito extrovertida tenta te incluir em tudo. Você se sente sobrecarregada. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Conhecidos",
+    text:"Um amigo de amigo começa a te comparar com a ex do namorado dizendo que você é bem diferente dela. O que você faz?" },
+
+  // SITUAÇÕES DE ESPERA
+  { level:1, lclass:"l1", ltag:"Situação de espera",
+    text:"Você está numa fila de banco e a pessoa do lado começa a reclamar da demora em voz alta pra você. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Situação de espera",
+    text:"Você está no elevador com um vizinho que você cumprimentou mas nunca conversou. O trajeto vai demorar 30 segundos. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Situação de espera",
+    text:"Você está numa sala de espera de médico e a pessoa do lado começa a puxar papo. Você está ansiosa. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Situação de espera",
+    text:"Você está esperando o ônibus há 20 minutos. A pessoa do lado faz um comentário sobre o atraso. O que você responde?" },
+  { level:2, lclass:"l2", ltag:"Situação de espera",
+    text:"Você está numa fila de supermercado e a pessoa na sua frente comenta sobre os produtos que você está comprando. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Situação de espera",
+    text:"Você está esperando seu namorado numa mesa. A pessoa na mesa do lado tenta puxar papo. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Situação de espera",
+    text:"Você está numa fila longa e a pessoa do lado começa a contar uma história longa sobre a vida dela. Você não pode sair. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Situação de espera",
+    text:"Você está num transporte lotado e fica espremida ao lado de alguém que tenta conversar durante todo o trajeto. O que você faz?" },
+
+  // EVENTOS SOCIAIS
+  { level:1, lclass:"l1", ltag:"Evento social",
+    text:"Você está na festa de aniversário de uma amiga. Ela te chama pra um grupo e te apresenta. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Evento social",
+    text:"Você está num casamento sentada numa mesa com pessoas que não conhece. É hora do jantar. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Evento social",
+    text:"Você está numa formatura e precisa cumprimentar professores e familiares que perguntam sobre seus planos. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Evento social",
+    text:"Você está num evento de trabalho do namorado. Ele fica ocupado e te deixa com duas pessoas que você não conhece. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Evento social",
+    text:"Num casamento o mestre de cerimônias pede pra cada mesa se apresentar com um fato curioso. Todos olham pra você. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Evento social",
+    text:"Seu namorado te apresenta pro chefe dele como 'a pessoa mais incrível que já conheceu'. O chefe olha esperando você se apresentar. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Evento social",
+    text:"Numa festa de empresa alguém pergunta o que você faz da vida. Você sente que sua resposta não vai impressionar. O que você faz?" },
+
+  // PRESSÃO DIRETA
+  { level:1, lclass:"l1", ltag:"Pressão direta",
+    text:"Uma amiga te pergunta o que você achou do namorado novo dela. Você não gostou muito. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Pressão direta",
+    text:"Alguém te pede pra contar uma história engraçada sobre você mesma. Você trava. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Pressão direta",
+    text:"Alguém te faz um elogio inesperado sobre sua aparência na frente de outras pessoas. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Pressão direta",
+    text:"Alguém te pergunta diretamente na frente de todos o que você acha sobre um assunto polêmico. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Pressão direta",
+    text:"Alguém discorda de algo que você disse de forma agressiva. Todo mundo para pra ver sua reação. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Pressão direta",
+    text:"Alguém te pergunta por que você é tão quieta na frente de outras pessoas. O que você responde?" },
+  { level:2, lclass:"l2", ltag:"Pressão direta",
+    text:"Alguém novo pergunta: 'Me conta sobre você, o que você curte fazer?' O que você responde?" },
+  { level:2, lclass:"l2", ltag:"Pressão direta",
+    text:"Alguém te pede pra tomar uma decisão por todos. Tipo escolher onde vão jantar. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Pressão direta",
+    text:"Uma pessoa te conta algo em segredo e logo depois outra pergunta pra você o que ela falou. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pressão direta",
+    text:"Alguém no grupo discorda de algo que você disse. Todo mundo olha esperando sua resposta. O que você fala?" },
+  { level:3, lclass:"l3", ltag:"Pressão direta",
+    text:"Numa roda de conversa alguém propõe que cada um fale sobre o maior erro que já cometeu. Chega sua vez. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pressão direta",
+    text:"Alguém te chama na frente de todo mundo por algo que você fez sem querer ofender. Todos estão olhando. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pressão direta",
+    text:"Uma pessoa mais velha e imponente te pergunta 'o que você quer ser na vida?' na frente de vários adultos. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pressão direta",
+    text:"Alguém que você mal conhece começa a te criticar de forma velada na frente de outras pessoas. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Pressão direta",
+    text:"No meio de uma conversa alguém diz 'a gente nunca sabe o que você tá pensando' e todos concordam rindo. O que você faz?" },
+
+  // ONLINE E WHATSAPP
+  { level:1, lclass:"l1", ltag:"Online e WhatsApp",
+    text:"Um amigo manda mensagem perguntando como você está. Você não sabe o que responder além de 'tô bem e você?'. O que você escreve?" },
+  { level:1, lclass:"l1", ltag:"Online e WhatsApp",
+    text:"Alguém mandou uma pergunta geral no grupo de WhatsApp. Você tem opinião. O que você escreve?" },
+  { level:2, lclass:"l2", ltag:"Online e WhatsApp",
+    text:"Uma pessoa que você não fala faz tempo manda 'oi sumida'. O que você responde?" },
+  { level:2, lclass:"l2", ltag:"Online e WhatsApp",
+    text:"Você está num grupo de WhatsApp e uma discussão esquenta. Você tem opinião diferente de todo mundo. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Online e WhatsApp",
+    text:"Um amigo te manda um meme engraçado. Você achou engraçado mas não sabe o que responder além de 'kkk'. O que você escreve?" },
+  { level:2, lclass:"l2", ltag:"Online e WhatsApp",
+    text:"Alguém que você conheceu recentemente te segue nas redes e manda mensagem querendo conversar. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Online e WhatsApp",
+    text:"Você precisa mandar mensagem pra alguém que não fala faz tempo pra pedir um favor. Como você começa?" },
+  { level:3, lclass:"l3", ltag:"Online e WhatsApp",
+    text:"Você percebe que todo mundo foi adicionado menos você num evento pelo grupo. Você quer perguntar mas não sabe como. O que você faz?" },
+
+  // INTERAÇÕES COTIDIANAS
+  { level:1, lclass:"l1", ltag:"Dia a dia",
+    text:"Você está num restaurante e o garçom pergunta se a comida está boa. Estava apenas ok. O que você responde?" },
+  { level:1, lclass:"l1", ltag:"Dia a dia",
+    text:"Você entra numa loja e a vendedora vem perguntar se precisa de ajuda. Você estava só olhando. O que você faz?" },
+  { level:1, lclass:"l1", ltag:"Dia a dia",
+    text:"Você precisa pedir uma informação pra um estranho na rua. Como você aborda a pessoa?" },
+  { level:2, lclass:"l2", ltag:"Dia a dia",
+    text:"Você está num restaurante e o pedido veio errado. O garçom pergunta se está tudo certo. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Dia a dia",
+    text:"A vendedora insiste em te ajudar mesmo depois de você dizer que está só olhando. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Dia a dia",
+    text:"Você pediu algo no balcão e a atendente não te entendeu. Ela pede pra você repetir. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Dia a dia",
+    text:"Você está num Uber e o motorista tenta puxar papo sobre sua vida. Você não está com vontade. O que você faz?" },
+  { level:2, lclass:"l2", ltag:"Dia a dia",
+    text:"Você vai buscar um pedido e a pessoa que te atende começa a ser simpática e fazer perguntas. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Dia a dia",
+    text:"Você precisa ligar pra um lugar que nunca ligou pra resolver algo. Como você se prepara e o que você fala?" },
+  { level:3, lclass:"l3", ltag:"Dia a dia",
+    text:"Você está num restaurante com pessoas e o garçom pergunta o que cada um vai querer. Você ainda não decidiu. Todos olham. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Dia a dia",
+    text:"Você recebeu um produto errado e precisa ligar pra reclamar. A atendente começa a questionar sua reclamação. O que você faz?" },
+  { level:3, lclass:"l3", ltag:"Dia a dia",
+    text:"Você está num salão e a cabeleireira tenta manter conversa durante todo o processo. Você não sabe o que falar. O que você faz?" }
+
+];
+
+const TOTAL = 8;
+
+function getSession() {
+  // Sort by level, then shuffle within each level, pick 2-3 per level
+  const l1 = scenarios.filter(s => s.level === 1).sort(() => Math.random() - 0.5);
+  const l2 = scenarios.filter(s => s.level === 2).sort(() => Math.random() - 0.5);
+  const l3 = scenarios.filter(s => s.level === 3).sort(() => Math.random() - 0.5);
+  return [...l1.slice(0,2), ...l2.slice(0,3), ...l3.slice(0,3)];
+}
+
+let session = getSession();
+let current = 0, done = 0, streak = 0;
+let allResults = [];
+
+function updateHeader() {
+  document.getElementById("streak-num").textContent = streak;
+  document.getElementById("done-num").textContent = done;
+  document.getElementById("progress-fill").style.width = Math.round((done / TOTAL) * 100) + "%";
+  document.getElementById("progress-count").textContent = done + " de " + TOTAL;
+  if (current < TOTAL) {
+    const s = session[current];
+    const tag = document.getElementById("level-tag");
+    tag.textContent = s.ltag;
+    tag.className = "level-tag " + s.lclass;
+  }
+}
+
+function renderScenario() {
+  if (current >= TOTAL) { renderSummaryLoading(); return; }
+  const s = session[current];
+  document.getElementById("main-content").innerHTML = `
+    <div class="scenario-wrap">
+      <div class="scenario-card">
+        <div class="situation-label">Situação ${current + 1} de ${TOTAL}</div>
+        <div class="scenario-text">${s.text}</div>
+      </div>
+      <div class="input-wrap">
+        <textarea id="user-input" placeholder="O que você falaria aqui? Escreve como vier, sem filtro..." maxlength="500" oninput="updateChar(this)"></textarea>
+        <span class="char-count" id="char-count">0 / 500</span>
+      </div>
+      <button class="btn-send" id="btn-send" onclick="submit()">Analisar resposta</button>
+      <button class="skip-btn" onclick="skipScenario()">pular esse cenário</button>
+    </div>`;
+  updateHeader();
+  setTimeout(() => document.getElementById("user-input")?.focus(), 100);
+}
+
+function updateChar(el) {
+  document.getElementById("char-count").textContent = el.value.length + " / 500";
+}
+
+function skipScenario() {
+  const s = session[current];
+  allResults.push({
+    scenario: s.text,
+    answer: "— pulou —",
+    abertura: "baixa",
+    especificidade: "baixa",
+    tom: "fechado",
+    skipped: true,
+    feedback: "Essa situação foi pulada."
+  });
+  streak = 0; current++;
+  renderScenario(); updateHeader();
+}
+
+async function submit() {
+  const input = document.getElementById("user-input");
+  const btn = document.getElementById("btn-send");
+  const answer = (input.value || "").trim();
+  if (!answer || answer.length < 3) return;
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="loading-state"><span class="dots"><span></span><span></span><span></span></span> analisando...</span>`;
+
+  const s = session[current];
+
+  const prompt = `Você é um coach de habilidades sociais experiente. Avalie a resposta abaixo com critérios claros e rigorosos.
+
+CENÁRIO: "${s.text}"
+RESPOSTA DA PESSOA: "${answer}"
+
+CRITÉRIOS DE AVALIAÇÃO:
+
+ABERTURA DE CONVERSA:
+- "boa": faz uma pergunta específica OU compartilha algo pessoal que convida o outro a falar
+- "média": reconhece o momento mas não cria gancho real
+- "baixa": monossilábica, encerra o assunto ou não faz nada
+
+ESPECIFICIDADE:
+- "boa": menciona algo concreto — um detalhe, um nome, uma situação específica
+- "média": fala sobre o tema mas sem detalhe real
+- "baixa": completamente vaga
+
+TOM:
+- "bom": aberto, curioso, leve — soa como alguém que quer continuar
+- "neutro": nem frio nem quente, funcional mas sem energia
+- "fechado": defensivo, muito curto, ou sinaliza que não quer continuar
+
+REGRA: Se a resposta faz uma pergunta direta e específica, mesmo que curta, é ABERTURA BOA e ESPECIFICIDADE BOA. Não penalize respostas curtas funcionais. Se foi bom, diga que foi bom.
+
+Retorne SOMENTE JSON válido, sem markdown:
+{
+  "abertura": "boa|média|baixa",
+  "especificidade": "boa|média|baixa",
+  "tom": "bom|neutro|fechado",
+  "feedback": "Máximo 2 frases. Primeira: o que funcionou (seja honesto). Segunda: uma sugestão prática ou, se foi ótimo, explique por que funcionou.",
+  "frase_exemplo": "Uma pergunta ou frase curta e natural para esse cenário. Sem floreios.",
+  "por_que_funciona": "Em uma frase: o que essa pergunta provoca na outra pessoa."
+}`;
+
+  try {
+    const res = await fetch("/api/claude", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5",
+        max_tokens: 800,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content[0].text.trim().replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(raw);
+
+    allResults.push({
+      scenario: s.text,
+      answer: answer,
+      abertura: parsed.abertura,
+      especificidade: parsed.especificidade,
+      tom: parsed.tom,
+      feedback: parsed.feedback
+    });
+
+    done++; streak++; current++;
+    renderFeedback(answer, parsed, s);
+    updateHeader();
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = "Analisar resposta";
+  }
+}
+
 function scoreClass(val) {
   if (val === "boa" || val === "bom") return "good";
   if (val === "média" || val === "neutro") return "ok";
   return "bad";
 }
 
-function scoreLabel(key, val) {
-  const m = {
-    abertura: { boa:"Abre conversa", média:"Abre um pouco", baixa:"Fecha conversa" },
-    especificidade: { boa:"Específica", média:"Genérica", baixa:"Vaga" },
-    tom: { bom:"Tom aberto", neutro:"Tom neutro", fechado:"Tom fechado" }
+function scoreText(key, val) {
+  const labels = {
+    abertura:       { boa:"Abre conversa",  média:"Abre um pouco", baixa:"Fecha conversa" },
+    especificidade: { boa:"Específica",     média:"Genérica",      baixa:"Vaga"           },
+    tom:            { bom:"Tom aberto",     neutro:"Tom neutro",   fechado:"Tom fechado"  }
   };
-  return m[key]?.[val] || val;
+  return labels[key]?.[val] || val;
 }
 
-function formatDate(id) {
-  const ts = parseInt(id.replace("session:", ""));
-  if (isNaN(ts)) return "—";
-  return new Date(ts).toLocaleString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
-}
-
-function countBoas(results) {
-  return (results || []).filter(r => r.abertura === "boa").length;
-}
-
-function toggleSession(id) {
-  const body = document.getElementById(`body-${id}`);
-  const chevron = document.getElementById(`chevron-${id}`);
-  body.classList.toggle("open");
-  chevron.classList.toggle("open");
-}
-
-function renderSession(s, index) {
-  const results = s.results || [];
-  const summary = s.summary || null;
-  const boas = countBoas(results);
-  const medias = results.filter(r => r.abertura === "média").length;
-  const baixas = results.filter(r => r.abertura === "baixa").length;
-  const safeId = `s${index}`;
-
-  const questionsHTML = results.map((r, i) => `
-    <div class="question-block">
-      <div class="q-label">Situação ${i + 1} · ${r.category || ""}</div>
-      <div class="q-text">${r.scenario}</div>
-      <div class="answer-box">"${r.answer}"</div>
+function renderFeedback(answer, parsed, s) {
+  document.getElementById("main-content").innerHTML = `
+    <div class="feedback-wrap">
+      <div class="scenario-card" style="margin-bottom:16px;">
+        <div class="situation-label">Situação</div>
+        <div class="scenario-text">${s.text}</div>
+      </div>
+      <div class="your-reply">"${answer}"</div>
       <div class="scores-row">
-        <span class="score-badge ${scoreClass(r.abertura)}">${scoreLabel("abertura", r.abertura)}</span>
-        <span class="score-badge ${scoreClass(r.especificidade)}">${scoreLabel("especificidade", r.especificidade)}</span>
-        <span class="score-badge ${scoreClass(r.tom)}">${scoreLabel("tom", r.tom)}</span>
+        <span class="score-badge ${scoreClass(parsed.abertura)}"><span class="score-dot"></span>${scoreText("abertura", parsed.abertura)}</span>
+        <span class="score-badge ${scoreClass(parsed.especificidade)}"><span class="score-dot"></span>${scoreText("especificidade", parsed.especificidade)}</span>
+        <span class="score-badge ${scoreClass(parsed.tom)}"><span class="score-dot"></span>${scoreText("tom", parsed.tom)}</span>
       </div>
-      <div class="ai-feedback-label">Análise da IA</div>
-      <div class="ai-feedback">${r.feedback}</div>
-    </div>
-  `).join("");
-
-  const summaryHTML = summary ? `
-    <div class="summary-block">
-      <div class="summary-block-label">Resumo gerado pela IA</div>
-      <div class="summary-title">${summary.titulo || ""}</div>
-      <div class="summary-text">${summary.resumo_geral || ""}</div>
-      <div class="summary-section-title">Ponto forte</div>
-      <div class="summary-text">${summary.ponto_forte || ""}</div>
-      <div class="summary-section-title">O que trabalhar</div>
-      <div class="summary-text">${summary.ponto_melhorar || ""}</div>
-    </div>
-  ` : "";
-
-  return `
-    <div class="session-card fade-in">
-      <div class="session-header" onclick="toggleSession('${safeId}')">
-        <div class="session-meta">
-          <span class="session-date">${formatDate(s.id)}</span>
-          <span class="session-count">${results.length} respostas</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div class="score-chips">
-            ${boas > 0 ? `<span class="chip-good">${boas} boas</span>` : ""}
-            ${medias > 0 ? `<span class="chip-ok">${medias} médias</span>` : ""}
-            ${baixas > 0 ? `<span class="chip-bad">${baixas} baixas</span>` : ""}
-          </div>
-          <span class="chevron" id="chevron-${safeId}">▾</span>
+      <div class="feedback-block">
+        <div class="feedback-block-label">Análise</div>
+        <p>${parsed.feedback}</p>
+        <button class="example-toggle" id="ex-btn" onclick="toggleEx()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Ver exemplo de resposta
+        </button>
+        <div class="example-reveal" id="ex-reveal">
+          <div class="example-phrase">"${parsed.frase_exemplo}"</div>
+          <div class="example-why"><strong>Por que funciona:</strong> ${parsed.por_que_funciona}</div>
         </div>
       </div>
-      <div class="session-body" id="body-${safeId}">
-        ${questionsHTML}
-        ${summaryHTML}
-      </div>
-    </div>
-  `;
+      <button class="btn-next" onclick="renderScenario()">
+        ${current < TOTAL ? "Próxima situação" : "Ver meu resultado"}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>`;
 }
 
-async function loadSessions() {
-  document.getElementById("sessions-list").innerHTML = `<div class="loading"><span class="dots"><span></span><span></span><span></span></span> Carregando sessões...</div>`;
+function toggleEx() {
+  const box = document.getElementById("ex-reveal");
+  const btn = document.getElementById("ex-btn");
+  const open = box.style.display === "block";
+  box.style.display = open ? "none" : "block";
+  btn.innerHTML = open
+    ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ver exemplo de resposta`
+    : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Esconder exemplo`;
+}
+
+function renderSummaryLoading() {
+  const tag = document.getElementById("level-tag");
+  tag.textContent = "Resultado";
+  tag.className = "level-tag l3";
+  document.getElementById("progress-fill").style.width = "100%";
+  document.getElementById("progress-count").textContent = "completo";
+
+  document.getElementById("main-content").innerHTML = `
+    <div class="summary-loading">
+      <div class="dots" style="justify-content:center"><span></span><span></span><span></span></div>
+      <p>Analisando suas respostas...</p>
+    </div>`;
+
+  generateSummary();
+}
+
+async function generateSummary() {
+  const resultsText = allResults.map((r, i) =>
+    `Situação ${i+1}: "${r.scenario}"\nResposta: "${r.answer}"\nAbertura: ${r.abertura} | Especificidade: ${r.especificidade} | Tom: ${r.tom}\nFeedback: ${r.feedback}`
+  ).join("\n\n");
+
+  const prompt = `Você é um coach de habilidades sociais. Uma pessoa acabou de completar 8 exercícios práticos de conversa. Analise o desempenho dela e crie um resumo honesto e motivador.
+
+RESULTADOS:
+${resultsText}
+
+Com base nesses resultados, crie um relatório personalizado. Retorne SOMENTE JSON válido, sem markdown:
+{
+  "titulo": "Uma frase curta e honesta sobre o desempenho geral. Ex: 'Você tem mais do que imagina.' ou 'A base tá lá, falta soltar.'",
+  "resumo_geral": "2-3 frases descrevendo o padrão geral das respostas. O que ela faz bem? Onde trava com mais frequência? Seja específico com base nas respostas dela, não genérico.",
+  "ponto_forte": "Um parágrafo curto (2 frases) sobre o maior ponto forte observado nas respostas.",
+  "ponto_melhorar": "Um parágrafo curto (2 frases) sobre o principal padrão que precisa melhorar. Seja direto e específico.",
+  "exercicios": [
+    {
+      "titulo": "Nome curto do exercício",
+      "descricao": "Instrução prática e específica de como fazer. Deve ser algo que ela pode fazer hoje ou amanhã, no dia a dia real. Não pode ser vago."
+    },
+    {
+      "titulo": "Nome curto do exercício",
+      "descricao": "Instrução prática e específica."
+    },
+    {
+      "titulo": "Nome curto do exercício",
+      "descricao": "Instrução prática e específica."
+    }
+  ]
+}`;
 
   try {
-    const res = await fetch("/api/get-sessions");
-    const sessions = await res.json();
-
-    if (!sessions.length) {
-      document.getElementById("sessions-list").innerHTML = `<div class="empty">Nenhuma sessão registrada ainda.</div>`;
-      document.getElementById("stat-total").textContent = "0";
-      document.getElementById("stat-respostas").textContent = "0";
-      document.getElementById("stat-boas").textContent = "0";
-      return;
-    }
-
-    const totalRespostas = sessions.reduce((acc, s) => acc + (s.results || []).length, 0);
-    const totalBoas = sessions.reduce((acc, s) => acc + countBoas(s.results || []), 0);
-
-    document.getElementById("stat-total").textContent = sessions.length;
-    document.getElementById("stat-respostas").textContent = totalRespostas;
-    document.getElementById("stat-boas").textContent = totalBoas;
-
-    document.getElementById("sessions-list").innerHTML = sessions.map((s, i) => renderSession(s, i)).join("");
+    const res = await fetch("/api/claude", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-5",
+        max_tokens: 1200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content[0].text.trim().replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(raw);
+    renderSummary(parsed);
+    saveSession(parsed);
   } catch(e) {
-    document.getElementById("sessions-list").innerHTML = `<div class="empty">Erro ao carregar sessões.</div>`;
+    document.getElementById("main-content").innerHTML = `
+      <div class="summary-wrap">
+        <div class="summary-hero">
+          <div class="mark">✦</div>
+          <h2>Você completou tudo.</h2>
+          <p>Erro ao gerar o resumo. Tente recarregar a página.</p>
+        </div>
+        <button class="btn-restart" onclick="restart()">Recomeçar</button>
+      </div>`;
   }
 }
 
-loadSessions();
+async function saveSession(summary) {
+  try {
+    await fetch("/api/save-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ results: allResults, summary: summary })
+    });
+  } catch(e) {
+    console.error("Erro ao salvar sessão:", e);
+  }
+}
+
+function renderSummary(data) {
+  const exercisesHTML = data.exercicios.map((ex, i) => `
+    <li class="exercise-item">
+      <span class="exercise-num">${i + 1}</span>
+      <span class="exercise-text"><strong>${ex.titulo}.</strong> ${ex.descricao}</span>
+    </li>`).join("");
+
+  document.getElementById("main-content").innerHTML = `
+    <div class="summary-wrap">
+      <div class="summary-hero">
+        <div class="mark">✦</div>
+        <h2>${data.titulo}</h2>
+        <p>${data.resumo_geral}</p>
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-label">Ponto forte</div>
+        <div class="summary-section-text">${data.ponto_forte}</div>
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-label">O que trabalhar</div>
+        <div class="summary-section-text">${data.ponto_melhorar}</div>
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-label">Exercícios práticos pra agora</div>
+        <ul class="exercises-list">${exercisesHTML}</ul>
+      </div>
+
+      <button class="btn-restart" onclick="restart()">Fazer de novo</button>
+    </div>`;
+}
+
+function restart() {
+  current = 0; done = 0; streak = 0; allResults = [];
+  session = getSession();
+  renderScenario(); updateHeader();
+}
+
+renderScenario();
 </script>
 </body>
 </html>
