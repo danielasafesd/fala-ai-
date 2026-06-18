@@ -501,6 +501,16 @@ function updateChar(el) {
 }
 
 function skipScenario() {
+  const s = session[current];
+  allResults.push({
+    scenario: s.text,
+    answer: "— pulou —",
+    abertura: "baixa",
+    especificidade: "baixa",
+    tom: "fechado",
+    skipped: true,
+    feedback: "Essa situação foi pulada."
+  });
   streak = 0; current++;
   renderScenario(); updateHeader();
 }
