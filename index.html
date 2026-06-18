@@ -701,6 +701,7 @@ Com base nesses resultados, crie um relatório personalizado. Retorne SOMENTE JS
     const raw = data.content[0].text.trim().replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(raw);
     renderSummary(parsed);
+    saveSession(parsed);
   } catch(e) {
     document.getElementById("main-content").innerHTML = `
       <div class="summary-wrap">
@@ -711,6 +712,18 @@ Com base nesses resultados, crie um relatório personalizado. Retorne SOMENTE JS
         </div>
         <button class="btn-restart" onclick="restart()">Recomeçar</button>
       </div>`;
+  }
+}
+
+async function saveSession(summary) {
+  try {
+    await fetch("/api/save-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ results: allResults, summary: summary })
+    });
+  } catch(e) {
+    console.error("Erro ao salvar sessão:", e);
   }
 }
 
